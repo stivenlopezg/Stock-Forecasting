@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from itertools import product
 
 
 def bootstrap_distribution(x: pd.Series, statistic: str = "mean", n_iter: int = 1000):
@@ -16,3 +17,8 @@ def bootstrap_distribution(x: pd.Series, statistic: str = "mean", n_iter: int = 
         else:
             dist_boot.append(np.quantile(a=resample, q=0.75))
     return dist_boot
+
+
+def combinator(items, r: int = 1):
+    cmb = [i for i in product(*items, repeat=r)]
+    return cmb

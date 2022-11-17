@@ -3,35 +3,36 @@ from sklearn.base import BaseEstimator, TransformerMixin
 
 
 class AutorregresiveFeatures(BaseEstimator, TransformerMixin):
-    def __init__(self, target: str = "close", lags_min: int = 1, lags_max: int = 30):
-        self.target = target
+    def __init__(self, lags_min: int = 1, lags_max: int = 30):
         self.lags_min = lags_min
         self.lags_max = lags_max
+        self.y = None
 
     def fit(self, X: pd.DataFrame, y: pd.Series = None):
         return self
 
     def transform(self, X: pd.DataFrame):
+        data = X.copy()
         for lag in range(self.lags_min, self.lags_max + 1):
-            X[f"{self.target}_{int(lag)}"] = X[self.target].shift(periods=lag)
-        X.dropna(inplace=True)
-        return X
+            data[f"close_{int(lag)}"] = data["close"].shift(periods=lag)
+        return data
 
 
 class SMAFeatures(BaseEstimator, TransformerMixin):
-    def __init__(self, target: str = "close", periods=None):
+    def __init__(self, periods=None):
         if periods is None:
             periods = []
-        self.target = target
         self.periods = periods
+        self.y = None
 
     def fit(self, X: pd.DataFrame, y: pd.Series = None):
         return self
 
     def transform(self, X: pd.DataFrame):
+        data = X.copy()
         for period in self.periods:
-            X[f"sma_{int(period)}"] = X[self.target].rolling(window=period).mean()
-        return X
+            data[f"sma_{int(period)}"] = data["close"].rolling(window=period).mean()
+        return data
 
 
 class GetDummies(BaseEstimator, TransformerMixin):
@@ -45,5 +46,29 @@ class GetDummies(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X: pd.DataFrame) -> pd.DataFrame:
-        X = pd.get_dummies(X, columns=self.columns)
-        return X
+        data = X.copy()
+        data = pd.get_dummies(data, columns=self.columns)
+        return data
+
+
+class DropNaN(BaseEstimator, TransformerMixin):
+    def fit(self, X: pd.DataFrame, y: pd.Series = None):
+        return self
+
+    def transform(self, X: pd.DataFrame):
+        data = X.copy()
+        data = data.dropna()
+        return data
+
+
+class DropColumns(BaseEstimator, TransformerMixin):
+    def __init__(self, columns: list):
+        self.columns = columns
+
+    def fit(self, X: pd.DataFrame, y: pd.Series = None):
+        return self
+
+    def transform(self, X: pd.DataFrame):
+        data = X.copy()
+        data.drop(columns=self.columns, inplace=True)
+        return data
