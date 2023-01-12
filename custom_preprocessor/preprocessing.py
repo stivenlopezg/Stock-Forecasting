@@ -1,12 +1,14 @@
 import pandas as pd
+from utilities.time_series import create_date_features
 from sklearn.base import BaseEstimator, TransformerMixin
+
+date_features = ["month", "day_of_week", "is_month_start", "is_month_end"]
 
 
 class AutorregresiveFeatures(BaseEstimator, TransformerMixin):
     def __init__(self, lags_min: int = 1, lags_max: int = 30):
         self.lags_min = lags_min
         self.lags_max = lags_max
-        self.y = None
 
     def fit(self, X: pd.DataFrame, y: pd.Series = None):
         return self
@@ -23,7 +25,6 @@ class SMAFeatures(BaseEstimator, TransformerMixin):
         if periods is None:
             periods = []
         self.periods = periods
-        self.y = None
 
     def fit(self, X: pd.DataFrame, y: pd.Series = None):
         return self
@@ -72,3 +73,36 @@ class DropColumns(BaseEstimator, TransformerMixin):
         data = X.copy()
         data.drop(columns=self.columns, inplace=True)
         return data
+
+
+class DateFeatures(BaseEstimator, TransformerMixin):
+    def __init__(self, categories: dict = None):
+        self.categories = categories
+
+    def fit(self, X: pd.DataFrame, y: pd.Series = None):
+        for ft in [ft for ft in X.columns.tolist() if ft != "close"]:
+            self.categories[ft] = X[ft].unique().tolist()
+        return self
+
+    def transform(self, X: pd.DataFrame):
+        data = X.copy()
+        data = create_date_features(data=data)
+        return data
+
+
+class ConvertToCategorical(BaseEstimator, TransformerMixin):
+    def __init__(self, categorical_fts: list = None):
+        self.categorical_fts = categorical_fts
+        self.categories = {}
+
+    def fit(self, X: pd.DataFrame, y: pd.Series = None):
+        for ft in self.categorical_fts:
+            self.categories[ft] = X[ft].unique().tolist()
+        return self
+
+    def transform(self, X: pd.DataFrame):
+        data = X.copy()
+        for ft in self.categorical_fts:
+            data[ft] = pd.Categorical(values=data[ft], categories=self.categories[ft])
+        return data
+

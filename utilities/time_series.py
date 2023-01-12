@@ -8,3 +8,9 @@ def create_date_features(data: pd.DataFrame):
     data["is_month_end"] = data.index.is_month_end
     return data
 
+
+def create_lag_features(data: pd.DataFrame, y: str = "close", lags_min: int = 1, lags_max: int = 20):
+    df = data.copy()
+    for lag in range(lags_min, lags_max + 1):
+        df[f"{y}_{int(lag)}"] = df[y].shift(periods=lag)
+    return data

@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 from sklearn.metrics import mean_absolute_error, mean_absolute_percentage_error, mean_squared_error
 
@@ -9,9 +10,13 @@ class RegressionEvaluator(object):
         self.metrics = None
 
     def calculate_metrics(self):
-        self.metrics = {"rmse": mean_squared_error(y_true=self.observed, y_pred=self.predicted, squared=False),
-                        "mae": mean_absolute_error(y_true=self.observed, y_pred=self.predicted),
-                        "mape": mean_absolute_percentage_error(y_true=self.observed, y_pred=self.predicted)}
+        self.metrics = {"rmse": np.round(mean_squared_error(y_true=self.observed,
+                                                            y_pred=self.predicted,
+                                                            squared=False), decimals=4),
+                        "mae": np.round(mean_absolute_error(y_true=self.observed,
+                                                            y_pred=self.predicted), decimals=4),
+                        "mape": np.round(mean_absolute_percentage_error(y_true=self.observed,
+                                                                        y_pred=self.predicted), decimals=4)}
         return self.metrics
 
     def print_metrics(self):
