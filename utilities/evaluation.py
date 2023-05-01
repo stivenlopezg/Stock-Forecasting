@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
-from sklearn.metrics import mean_absolute_error, mean_absolute_percentage_error, mean_squared_error
+from sklearn.metrics import mean_absolute_error, mean_absolute_percentage_error,\
+                            mean_squared_error, mean_squared_log_error
 
 
 class RegressionEvaluator(object):
@@ -16,12 +17,14 @@ class RegressionEvaluator(object):
                         "mae": np.round(mean_absolute_error(y_true=self.observed,
                                                             y_pred=self.predicted), decimals=4),
                         "mape": np.round(mean_absolute_percentage_error(y_true=self.observed,
-                                                                        y_pred=self.predicted), decimals=4)}
+                                                                        y_pred=self.predicted) * 100, decimals=4),
+                        "rmsle": np.round(mean_squared_log_error(y_true=self.observed,
+                                                                 y_pred=self.predicted,
+                                                                 squared=False), decimals=4)}
         return self.metrics
 
     def print_metrics(self):
         if self.metrics is None:
             self.calculate_metrics()
-        print(f"El RMSE es: {self.metrics['rmse']}")
-        print(f"El MAE es: {self.metrics['mae']}")
-        print(f"El MAPE es: {self.metrics['mape']}")
+        for key in self.metrics.keys():
+            print(f"El {key.upper()} es: {self.metrics.get(key)}")
